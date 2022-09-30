@@ -1,3 +1,5 @@
+const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
 class GameBoard {
   constructor () {
     this.board = this.generateBoard();
@@ -27,7 +29,6 @@ class Knight {
     if (cord[0] > 7 || cord[1] > 7 || cord[0] < 0 || cord[1] < 0 || cord === this.position) {
       return null;
     }
-
     return cord;
   }
 }
@@ -46,7 +47,6 @@ function isVisited(position, board) {
 
 function constructGraph(pos, piece, board) {
   const queue = [];
-  const newBoard = board;
   const newVertex = new Vertex(pos, null, 0);
   queue.push(newVertex);
 
@@ -54,12 +54,10 @@ function constructGraph(pos, piece, board) {
     const vertexToBeProcessed = queue.shift();
     const newPos = vertexToBeProcessed.position;
     board[newPos[0]][newPos[1]] = vertexToBeProcessed;
-
     const arrToVisit = Object.values(piece.getPossibleMoves(newPos))
     .filter(obj => obj !== null)
     .map((pos) => isVisited(pos, board) ? null : new Vertex(pos, vertexToBeProcessed, vertexToBeProcessed.distance + 1))
     .filter(obj => obj !== null);
-
     arrToVisit.forEach(newVert => queue.push(newVert));
   }
 }
@@ -76,11 +74,22 @@ function shortPathDecider(pos, piece, board, result, finale) {
   return shortPathDecider(minimalVertex.position, piece, board, result, finale);
 }
 
-function knightMoves(cordX, cordY) {
+function convertToCord(pos) {
+  return [alphabet.findIndex((l) => pos.slice(0, 1).toUpperCase() === l), parseInt(pos.slice(1))];
+}
+
+function convertToPos(cord) {
+  return `${alphabet[cord[0]]}${cord[1]}`;
+}
+
+function knightMoves(posX, posY) {
+  const cordX = convertToCord(posX);
+  const cordY = convertToCord(posY);
   const chessBoard = new GameBoard();
   const knightPiece = new Knight();
   constructGraph(cordY, knightPiece, chessBoard.board);
-  return shortPathDecider(cordX, knightPiece, chessBoard.board, [], cordY);
+  const results = shortPathDecider(cordX, knightPiece, chessBoard.board, [], cordY);
+  return results.map((cord) => convertToPos(cord));
 }
 
-console.log(knightMoves([0, 0], [1, 1]))
+console.log(knightMoves('A1', 'A2'));
